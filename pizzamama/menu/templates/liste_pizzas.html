@@ -1,0 +1,243 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Pizzas</title>
+    <link rel="stylesheet" href="{% static 'auth_app/bootstrap.min.css' %}">
+    <style>
+        body { background: #fff3e0; min-width: 732px;}
+        .pizza-card { transition: transform .2s; }
+        .pizza-card:hover { transform: scale(1.03); }
+        .panier { background: #f8f9fa; padding: 15px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .categories a { margin: 5px; background-color: #e42b21; color: #fff3e0;}
+        .btn.active{background-color: #e42b21; color: white;}
+        .categories{
+
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background-color: #fff3e0;
+            padding: 20px;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+            
+        }
+        .imageLogo{
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .divpizza{
+            background-color: #f8f9fa;
+        }
+        .panier-sticky{
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
+        }
+        .ligne{
+            background-color: rgba(0,0,0,0.1);
+            height: 2px;
+            width: 100%;
+            box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.2)
+        }
+        .navbar{
+            background-color: #fff3e0;
+
+        }
+        .textNav li a{
+            color: black;
+        }
+        .bton{
+            background-color: #ffc72b;
+        }
+        #titrePizzas{
+            opacity: 0;
+            transform: translateY(-5px);
+            animation: fadeInTitle 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInTitle {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .panier-contenu {
+            opacity: 0;
+            transform: translateY(15px);
+            animation: fadeInPanier 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInPanier {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Sections avec scroll interne */
+    .categories, .col-7, .panier {
+        height: 100vh;       /* prend toute la hauteur de l’écran */
+        overflow-y: auto;    /* scroll interne si contenu dépasse */
+        padding-right: 10px; /* pour éviter que le scroll cache le contenu */
+    }
+
+    /* Optionnel : hide scroll bar sur Webkit */
+    .categories::-webkit-scrollbar,
+    .col-7::-webkit-scrollbar,
+    .panier::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .categories::-webkit-scrollbar-thumb,
+    .col-7::-webkit-scrollbar-thumb,
+    .panier::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 3px;
+    }
+
+    </style>
+</head>
+<body>
+<div class="container-fluid mt-0">
+    <div class="row">
+
+        <!-- Liste catégories -->
+        <div class="col-2 categories sticky-top" id="gauche">
+            <div class="imageLogo">
+                <img src="{% static 'image/Pizzamamapng.png' %}" alt="logo" style="width: 70px;">
+            </div>
+            <div class="categorie">
+                <h5 class="fw-bold">Catégories</h5>
+                <a href="{% url 'menu' %}" class="btn btn-outline-danger w-100 mb-2 {% if not categorie_active %}active{% endif %}">Toutes</a>
+                {% for cat in categories %}
+                    <a href="{% url 'menu_par_categorie' cat.id %}" class="btn btn-outline-danger w-100 mb-2 {% if categorie_active == cat_id %}active{% endif %}">
+                        {{ cat.nom }}
+                    </a>
+                {% endfor %}            
+            </div>
+        </div>
+
+        
+        <div class="col-7">
+            <!-- Navbar -->
+            <div class="sticky-top">
+                <nav class="navbar navbar-expand-sm ">
+                    <div class="container-fluid">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+                          <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="mynavbar">
+                          <ul class="navbar-nav me-auto textNav" >
+                            <li class="nav-item">
+                              <a class="nav-link" href="{% url 'A_propos' %}">A propos</a>
+                            </li>
+
+    
+                          </ul>
+                          <form class="d-flex" method="get" action="{% url 'menu' %}">
+                            <input class="form-control me-2" type="text" name="q" placeholder="Rechercher..." value="{{ query }}">
+                            <button class="bton btn-warning" type="submit">Search</button>
+                        </form>
+                        </div>
+                      </div>
+                </nav>
+                <div class="ligne">
+                </div>
+            </div>
+
+            <!-- Liste pizzas -->
+            <div id="titrePizzas" class="container-fluid mt-5">
+                <h3 class="mb-4 fw-bold">
+                    {% if categorie_active %}
+                        🍕 {{ categorie_active.nom }}
+                    {% else %}
+                        🍕 Nos Pizzas
+                    {% endif %}
+                </h3>
+                <div class="row">
+                    {% for pizza in pizzas %}
+                        <div class="col-md-4 mb-4" data-bs-toggle="tooltip" data-bs-placement="top" title="{{pizza.description}}">
+                            <div class="card pizza-card divpizza " >
+                                <img src="{{ pizza.image.url }}" class="card-img-top" alt="{{ pizza.nom }}">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">{{ pizza.nom }}</h5>
+                                    <p class="text-danger fw-bold">{{ pizza.prix }} Ar</p>
+                                    <form method="post" action="{% url 'ajouter_panier' pizza.id %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-danger">Ajouter au panier</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>Aucune pizza disponible dans cette catégorie.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panier -->
+        <div class="col-3 panier ">
+            <div class="cart shadow p-3 bg-white rounded panier-sticky ">
+                <h4 class="fw-bold">🛒 Panier</h4>
+                {% if panier %}
+                    <div class="panier-contenu">
+                        <ul class="list-group mb-3">
+                            {% for id, item in panier.items %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ item.nom }}</strong><br>
+                                        <span class="text-danger">{{ item.prix }} Ar</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <!-- Bouton + -->
+                                        <form method="post" action="{% url 'ajouter_panier' id %}">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-outline-danger">+</button>
+                                        </form>
+        
+                                        <span class="mx-2">{{ item.quantite }}</span>
+        
+                                        <!-- Bouton ❌ -->
+                                        <form method="post" action="{% url 'supprimer_panier' id %}">
+                                            {% csrf_token %}
+                                            <button class="btn btn-sm btn-outline-secondary">❌</button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <h5>Total : <span class="text-danger fw-bold">{{ total }} Ar</span></h5>
+        
+                        <!-- Bouton vider -->
+                        <form method="post" action="{% url 'vider_panier' %}">
+                            {% csrf_token %}
+                            <button class="btn btn-warning w-100 mt-2">🗑️ Vider le panier</button>
+                        </form>
+        
+                        <a href="{% url 'validation_commande' %}" class="btn btn-danger w-100 mt-2">Commander</a>
+    
+                    </div>
+                {% else %}
+                    <p>Votre panier est vide.</p>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'auth_app/bootstrap.bundle.min.js' %}"></script>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+</body>
+</html>
