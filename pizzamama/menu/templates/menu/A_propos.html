@@ -1,0 +1,89 @@
+﻿{% extends 'menu/base.html' %}
+{% load static %}
+
+{% block title %}Pizza Mama | Accueil{% endblock %}
+
+{% block content %}
+<section class="surface-card hero-box float-enter mb-3">
+    <div class="hero-grid">
+        <div class="hero-copy">
+            <span class="section-kicker mb-3">Restaurant familial</span>
+            <h1 class="font-head title-xl mb-3">Des pizzas genereuses, un parcours de commande simple, un suivi clair.</h1>
+            <p class="text-muted-soft mb-3">
+                Pizza Mama centralise la presentation du menu, la prise de commande, le suivi client et le pilotage interne.
+                Le resultat: moins de friction pour commander et moins de flottement pour l'equipe.
+            </p>
+            <p class="hero-highlight">
+                Choisissez vos pizzas, validez en quelques clics, puis retrouvez chaque commande avec une reference unique.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a href="{% url 'menu' %}" class="btn btn-brand">Voir le menu</a>
+                <a href="{% url 'suivi_commande' %}" class="btn btn-outline-brand">Suivre une commande</a>
+            </div>
+            <div class="metric-strip">
+                <div class="metric-tile">
+                    <strong>Catalogue clair</strong>
+                    <span>Recherche + categories</span>
+                </div>
+                <div class="metric-tile">
+                    <strong>Suivi client</strong>
+                    <span>Reference + email</span>
+                </div>
+                <div class="metric-tile">
+                    <strong>Back-office</strong>
+                    <span>Rapports et statuts</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-media">
+            <img src="{% static 'menu/image/livreur.jpeg' %}" alt="Livreur Pizza Mama" class="hero-img">
+            <div class="hero-badge">
+                <span class="tag-pill">Commande en ligne</span>
+                <strong>Support: {{ support_email }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="info-grid mb-3">
+    <article class="surface-card-soft info-card float-enter float-delay-1">
+        <span class="section-kicker">Client</span>
+        <h2 class="font-head title-md mt-2 mb-2">Une experience plus rassurante</h2>
+        <p class="mb-0 text-muted-soft">Confirmation apres commande, recapitulatif detaille et historique complet pour les comptes clients.</p>
+    </article>
+    <article class="surface-card-soft info-card float-enter float-delay-2">
+        <span class="section-kicker">Equipe</span>
+        <h2 class="font-head title-md mt-2 mb-2">Un suivi plus operationnel</h2>
+        <p class="mb-0 text-muted-soft">Statuts de commande, paiement en attente ou paye, et un rapport simple pour piloter l'activite.</p>
+    </article>
+    <article class="surface-card-soft info-card float-enter float-delay-3">
+        <span class="section-kicker">Technique</span>
+        <h2 class="font-head title-md mt-2 mb-2">Une base plus solide</h2>
+        <p class="mb-0 text-muted-soft">Architecture Django clarifiee, services dedies, templates reutilisables et configuration distincte dev/prod.</p>
+    </article>
+</section>
+
+<section class="surface-card p-3 p-md-4 float-enter float-delay-3">
+    <div class="section-head">
+        <div>
+            <span class="section-kicker">Parcours</span>
+            <h2 class="font-head title-lg mt-2">Comment ca fonctionne</h2>
+        </div>
+    </div>
+    <div class="process-grid">
+        <article class="process-card">
+            <strong>1. Explorer</strong>
+            <p class="mb-0 text-muted-soft">Parcourez les categories, lancez une recherche et construisez votre panier.</p>
+        </article>
+        <article class="process-card">
+            <strong>2. Commander</strong>
+            <p class="mb-0 text-muted-soft">Validez votre adresse, votre numero et votre mode de paiement en un seul formulaire.</p>
+        </article>
+        <article class="process-card">
+            <strong>3. Suivre</strong>
+            <p class="mb-0 text-muted-soft">Retrouvez l'etat de la commande depuis votre compte ou via la reference envoyee.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

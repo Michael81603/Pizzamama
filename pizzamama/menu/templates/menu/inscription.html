@@ -1,0 +1,55 @@
+﻿{% extends 'menu/base.html' %}
+
+{% block title %}Pizza Mama | Inscription{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <section class="surface-card auth-wrap float-enter">
+        <div class="section-head mb-3">
+            <div>
+                <span class="section-kicker">Compte client</span>
+                <h1 class="font-head title-lg mt-2">Creer un compte</h1>
+            </div>
+            <a href="{% url 'menu' %}" class="back-link">Retour menu</a>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                {{ form.email.errors }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.password1.id_for_label }}" class="form-label">{{ form.password1.label }}</label>
+                {{ form.password1 }}
+                {{ form.password1.errors }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
+                {{ form.password2 }}
+                {{ form.password2.errors }}
+            </div>
+            <button class="btn btn-brand w-100">S'inscrire</button>
+        </form>
+
+        <a href="{% url 'connexion' %}" class="btn btn-outline-brand w-100 mt-2">J'ai deja un compte</a>
+    </section>
+
+    <aside class="surface-card-soft auth-side float-enter float-delay-1">
+        <span class="section-kicker">Compte</span>
+        <h2 class="font-head title-md mt-2 mb-3">Un espace client simple</h2>
+        <ul class="detail-list mb-0">
+            <li>Associer automatiquement les futures commandes a votre profil.</li>
+            <li>Garder un historique clair de vos achats.</li>
+            <li>Acceder a un suivi plus rapide apres validation.</li>
+        </ul>
+    </aside>
+</div>
+{% endblock %}

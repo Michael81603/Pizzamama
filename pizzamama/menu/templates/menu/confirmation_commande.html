@@ -1,0 +1,78 @@
+﻿{% extends 'menu/base.html' %}
+{% load menu_extras %}
+
+{% block title %}Pizza Mama | Confirmation{% endblock %}
+
+{% block content %}
+<section class="surface-card order-card float-enter">
+    {% if commande %}
+        <div class="section-head mb-3">
+            <div>
+                <span class="section-kicker">Commande validee</span>
+                <h1 class="font-head title-lg mt-2">Merci, votre commande est enregistree</h1>
+            </div>
+            <span class="chip chip-{{ commande.status_theme }}">{{ commande.get_status_display }}</span>
+        </div>
+
+        <div class="summary-grid mb-3">
+            <article class="summary-card">
+                <span class="tiny-meta">Reference</span>
+                <strong>{{ commande.reference }}</strong>
+            </article>
+            <article class="summary-card">
+                <span class="tiny-meta">Paiement</span>
+                <strong>{{ commande.get_payment_method_display }}</strong>
+                <small class="chip chip-{{ commande.payment_theme }} mt-2">{{ commande.get_payment_status_display }}</small>
+            </article>
+            <article class="summary-card">
+                <span class="tiny-meta">Total</span>
+                <strong>{{ commande.total|ariary }}</strong>
+            </article>
+        </div>
+
+        <div class="progress-shell mb-3">
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ commande.progress_percent }}%;"></div>
+            </div>
+            <div class="step-list mt-3">
+                <div class="step-item {% if commande.status_rank >= 1 %}active{% endif %} {% if commande.status == commande.Statut.ANNULEE %}cancelled{% endif %}">
+                    <span class="step-dot"></span>
+                    <span>Nouvelle</span>
+                </div>
+                <div class="step-item {% if commande.status_rank >= 2 %}active{% endif %} {% if commande.status == commande.Statut.ANNULEE %}cancelled{% endif %}">
+                    <span class="step-dot"></span>
+                    <span>Preparation</span>
+                </div>
+                <div class="step-item {% if commande.status_rank >= 3 %}active{% endif %} {% if commande.status == commande.Statut.ANNULEE %}cancelled{% endif %}">
+                    <span class="step-dot"></span>
+                    <span>Livraison</span>
+                </div>
+                <div class="step-item {% if commande.status_rank >= 4 %}active{% endif %} {% if commande.status == commande.Statut.ANNULEE %}cancelled{% endif %}">
+                    <span class="step-dot"></span>
+                    <span>Livree</span>
+                </div>
+            </div>
+        </div>
+
+        <ul class="list-group cart-list mb-3">
+            {% for item in commande.items.all %}
+                <li class="list-group-item d-flex justify-content-between gap-2">
+                    <span>{{ item.pizza_nom }} (x{{ item.quantite }})</span>
+                    <strong>{{ item.total|ariary }}</strong>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="d-flex flex-column flex-sm-row gap-2">
+            <a href="{% url 'suivi_commande' %}?reference={{ commande.reference }}&email={{ commande.email }}" class="btn btn-outline-brand flex-fill">Suivre cette commande</a>
+            <a href="{% url 'menu' %}" class="btn btn-brand flex-fill">Retour au menu</a>
+        </div>
+    {% else %}
+        <div class="empty-state p-4">
+            <h1 class="font-head title-lg mb-3">Aucune commande recente trouvee</h1>
+            <p class="text-muted-soft mb-3">La confirmation n'a pas retrouve de reference exploitable dans la session ou l'URL.</p>
+            <a href="{% url 'menu' %}" class="btn btn-brand">Retour au menu</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

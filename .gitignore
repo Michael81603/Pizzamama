@@ -1,0 +1,30 @@
+﻿# Virtual environments
+venv/
+env/
+.venv/
+
+# Python cache and build output
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local environment files
+.env
+.env.*
+
+# Local databases and logs
+*.sqlite3
+*.log
+
+# Django generated assets
+pizzamama/staticfiles/
+pizzamama/media/
+
+# IDE settings
+.vscode/
+.idea/

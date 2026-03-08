@@ -1,0 +1,46 @@
+﻿{% extends 'menu/base.html' %}
+
+{% block title %}Pizza Mama | Connexion{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <section class="surface-card auth-wrap float-enter">
+        <div class="section-head mb-3">
+            <div>
+                <span class="section-kicker">Compte client</span>
+                <h1 class="font-head title-lg mt-2">Connexion</h1>
+            </div>
+            <a href="{% url 'menu' %}" class="back-link">Retour menu</a>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+            <div class="mb-3">
+                <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <button class="btn btn-brand w-100">Se connecter</button>
+        </form>
+
+        <a href="{% url 'inscription' %}" class="btn btn-outline-brand w-100 mt-2">Creer un compte</a>
+    </section>
+
+    <aside class="surface-card-soft auth-side float-enter float-delay-1">
+        <span class="section-kicker">Pourquoi se connecter</span>
+        <h2 class="font-head title-md mt-2 mb-3">Retrouver vos commandes plus vite</h2>
+        <ul class="detail-list mb-0">
+            <li>Consulter l'historique sans ressaisir votre reference.</li>
+            <li>Verifier rapidement le statut de chaque commande.</li>
+            <li>Pre-remplir plus facilement les prochaines commandes.</li>
+        </ul>
+    </aside>
+</div>
+{% endblock %}

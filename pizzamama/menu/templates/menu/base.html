@@ -1,0 +1,94 @@
+﻿{% load static menu_extras %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Pizza Mama{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'menu/auth_app/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'menu/css/theme.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="app-body">
+<header class="shell shell-top">
+    <div class="surface-card app-nav float-enter">
+        <div class="navbar navbar-expand-xl navbar-light p-0">
+            <div class="container-fluid px-0 gap-3">
+                <a href="{% url 'A_propos' %}" class="brand-link text-decoration-none">
+                    <img src="{% static 'menu/image/Pizzamamapng.png' %}" alt="Logo Pizza Mama" class="app-logo">
+                    <span class="brand-stack">
+                        <span class="brand-eyebrow">Pizza Mama</span>
+                        <span class="brand-title">Commande et livraison</span>
+                    </span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="topNav">
+                    <ul class="navbar-nav me-auto mb-3 mb-xl-0">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'A_propos' %}active{% endif %}" href="{% url 'A_propos' %}">Accueil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'menu' or request.resolver_match.url_name == 'menu_par_categorie' %}active{% endif %}" href="{% url 'menu' %}">Menu</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'suivi_commande' %}active{% endif %}" href="{% url 'suivi_commande' %}">Suivi commande</a>
+                        </li>
+                        {% if request.user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'mes_commandes' %}active{% endif %}" href="{% url 'mes_commandes' %}">Mes commandes</a>
+                            </li>
+                            {% if request.user.is_staff %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'rapport_commandes' %}active{% endif %}" href="{% url 'rapport_commandes' %}">Rapport</a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+
+                    <div class="nav-actions">
+                        <a href="{% url 'menu' %}#panier" class="cart-chip {% if nav_cart_has_items %}has-items{% endif %}">
+                            <span class="cart-chip-label">Panier</span>
+                            <strong>{{ nav_cart_count }}</strong>
+                            <small>{{ nav_cart_total|ariary }}</small>
+                        </a>
+                        {% if request.user.is_authenticated %}
+                            <span class="tiny-meta">Bonjour {{ request.user.username }}</span>
+                            <form method="post" action="{% url 'deconnexion' %}" class="m-0">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-brand btn-sm">Deconnexion</button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'connexion' %}" class="btn btn-outline-brand btn-sm">Connexion</a>
+                            <a href="{% url 'inscription' %}" class="btn btn-brand btn-sm">Inscription</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="app-layer shell shell-page">
+    {% include 'menu/includes/messages.html' %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="shell site-footer">
+    <div class="surface-card-soft site-footer-inner">
+        <div>
+            <strong class="font-head">Pizza Mama</strong>
+            <p class="mb-0 tiny-meta">Catalogue, commande, suivi et back-office reunis dans une seule application Django.</p>
+        </div>
+        <a href="{% url 'menu' %}" class="back-link">Commander maintenant</a>
+    </div>
+</footer>
+
+<script src="{% static 'menu/auth_app/bootstrap.bundle.min.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
+
