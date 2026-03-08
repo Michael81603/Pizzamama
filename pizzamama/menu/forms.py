@@ -35,8 +35,9 @@ class CommandeForm(forms.ModelForm):
             "adresse": forms.Textarea(
                 attrs={"rows": 3, "placeholder": "Ex: Lot II M 15, Antananarivo"}
             ),
+            "payment_method": forms.RadioSelect,
             "notes": forms.Textarea(
-                attrs={"rows": 2, "placeholder": "Code portail, etage, repere..."}
+                attrs={"rows": 3, "placeholder": "Code portail, etage, repere, allergie, appel avant livraison..."}
             ),
         }
 
@@ -53,9 +54,13 @@ class CommandeForm(forms.ModelForm):
             "telephone": "tel",
             "adresse": "street-address",
         }
+        self.fields["payment_method"].initial = self.fields["payment_method"].initial or Commande.PaiementMethode.CASH
+
         for name, field in self.fields.items():
-            css_class = "form-select" if name == "payment_method" else "form-control"
-            field.widget.attrs.setdefault("class", css_class)
+            if name == "payment_method":
+                field.widget.attrs.setdefault("class", "payment-choice-input")
+            else:
+                field.widget.attrs.setdefault("class", "form-control")
             if name in placeholders:
                 field.widget.attrs.setdefault("placeholder", placeholders[name])
             if name in autocomplete:

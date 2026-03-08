@@ -76,6 +76,26 @@ class Commande(models.Model):
         PaiementStatut.ECHOUE: "danger",
         PaiementStatut.REMBOURSE: "accent",
     }
+    STATUS_SUMMARIES = {
+        Statut.NOUVELLE: "Votre commande a ete recue et attend maintenant la prise en charge de l'equipe.",
+        Statut.EN_PREPARATION: "L'equipe cuisine prepare votre commande en ce moment.",
+        Statut.EN_LIVRAISON: "Le livreur est en route avec votre commande.",
+        Statut.LIVREE: "La commande a ete remise avec succes.",
+        Statut.ANNULEE: "La commande a ete interrompue avant livraison.",
+    }
+    ETA_LABELS = {
+        Statut.NOUVELLE: "35 a 45 min",
+        Statut.EN_PREPARATION: "20 a 30 min",
+        Statut.EN_LIVRAISON: "10 a 15 min",
+        Statut.LIVREE: "Livree",
+        Statut.ANNULEE: "Interrompue",
+    }
+    PAYMENT_SUMMARIES = {
+        PaiementStatut.EN_ATTENTE: "Le paiement sera confirme par l'equipe ou a la livraison.",
+        PaiementStatut.PAYE: "Le paiement est valide.",
+        PaiementStatut.ECHOUE: "Le paiement n'a pas pu etre confirme.",
+        PaiementStatut.REMBOURSE: "Le paiement a ete rembourse.",
+    }
 
     user = models.ForeignKey(
         User,
@@ -177,6 +197,18 @@ class Commande(models.Model):
     @property
     def payment_theme(self):
         return self.PAYMENT_THEMES.get(self.payment_status, "pending")
+
+    @property
+    def eta_label(self):
+        return self.ETA_LABELS.get(self.status, "A confirmer")
+
+    @property
+    def status_summary(self):
+        return self.STATUS_SUMMARIES.get(self.status, "Statut mis a jour par l'equipe.")
+
+    @property
+    def payment_summary(self):
+        return self.PAYMENT_SUMMARIES.get(self.payment_status, "Suivi de paiement en cours.")
 
     def __str__(self):
         return (

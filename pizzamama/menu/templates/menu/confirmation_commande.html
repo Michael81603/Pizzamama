@@ -1,32 +1,43 @@
-﻿{% extends 'menu/base.html' %}
+{% extends 'menu/base.html' %}
 {% load menu_extras %}
 
 {% block title %}Pizza Mama | Confirmation{% endblock %}
 
 {% block content %}
-<section class="surface-card order-card float-enter">
-    {% if commande %}
-        <div class="section-head mb-3">
+{% if commande %}
+    <section class="surface-card order-card ticket-hero float-enter mb-3">
+        <div class="ticket-hero-top">
             <div>
                 <span class="section-kicker">Commande validee</span>
-                <h1 class="font-head title-lg mt-2">Merci, votre commande est enregistree</h1>
+                <h1 class="font-head title-lg mt-2 mb-2">Commande enregistree</h1>
+                <p class="text-muted-soft mb-0">{{ commande.status_summary }}</p>
             </div>
-            <span class="chip chip-{{ commande.status_theme }}">{{ commande.get_status_display }}</span>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="chip chip-{{ commande.status_theme }}">{{ commande.get_status_display }}</span>
+                <span class="chip chip-{{ commande.payment_theme }}">{{ commande.get_payment_status_display }}</span>
+            </div>
         </div>
 
-        <div class="summary-grid mb-3">
-            <article class="summary-card">
+        <div class="ticket-meta-grid mb-3">
+            <article class="ticket-meta-card">
                 <span class="tiny-meta">Reference</span>
-                <strong>{{ commande.reference }}</strong>
+                <strong class="ticket-reference">{{ commande.reference }}</strong>
+                <small>pour le suivi</small>
             </article>
-            <article class="summary-card">
+            <article class="ticket-meta-card">
+                <span class="tiny-meta">Delai estime</span>
+                <strong>{{ commande.eta_label }}</strong>
+                <small>estimation</small>
+            </article>
+            <article class="ticket-meta-card">
                 <span class="tiny-meta">Paiement</span>
                 <strong>{{ commande.get_payment_method_display }}</strong>
-                <small class="chip chip-{{ commande.payment_theme }} mt-2">{{ commande.get_payment_status_display }}</small>
+                <small>{{ commande.get_payment_status_display }}</small>
             </article>
-            <article class="summary-card">
+            <article class="ticket-meta-card">
                 <span class="tiny-meta">Total</span>
                 <strong>{{ commande.total|ariary }}</strong>
+                <small>{{ commande.date_commande|date:"d/m/Y H:i" }}</small>
             </article>
         </div>
 
@@ -54,7 +65,26 @@
             </div>
         </div>
 
-        <ul class="list-group cart-list mb-3">
+        <div class="summary-grid mb-3">
+            <article class="summary-card">
+                <span class="tiny-meta">Client</span>
+                <strong>{{ commande.nom }}</strong>
+            </article>
+            <article class="summary-card">
+                <span class="tiny-meta">Email</span>
+                <strong>{{ commande.email }}</strong>
+            </article>
+            <article class="summary-card">
+                <span class="tiny-meta">Telephone</span>
+                <strong>{{ commande.telephone }}</strong>
+            </article>
+            <article class="summary-card">
+                <span class="tiny-meta">Adresse</span>
+                <strong>{{ commande.adresse }}</strong>
+            </article>
+        </div>
+
+        <ul class="list-group cart-list order-line-list mb-3">
             {% for item in commande.items.all %}
                 <li class="list-group-item d-flex justify-content-between gap-2">
                     <span>{{ item.pizza_nom }} (x{{ item.quantite }})</span>
@@ -63,16 +93,25 @@
             {% endfor %}
         </ul>
 
+        {% if commande.notes %}
+            <div class="surface-card-soft p-3 mb-3">
+                <span class="tiny-meta">Instructions complementaires</span>
+                <p class="mb-0">{{ commande.notes }}</p>
+            </div>
+        {% endif %}
+
         <div class="d-flex flex-column flex-sm-row gap-2">
             <a href="{% url 'suivi_commande' %}?reference={{ commande.reference }}&email={{ commande.email }}" class="btn btn-outline-brand flex-fill">Suivre cette commande</a>
             <a href="{% url 'menu' %}" class="btn btn-brand flex-fill">Retour au menu</a>
         </div>
-    {% else %}
+    </section>
+{% else %}
+    <section class="surface-card order-card float-enter">
         <div class="empty-state p-4">
             <h1 class="font-head title-lg mb-3">Aucune commande recente trouvee</h1>
-            <p class="text-muted-soft mb-3">La confirmation n'a pas retrouve de reference exploitable dans la session ou l'URL.</p>
+            <p class="text-muted-soft mb-3">Aucune reference exploitable n'a ete trouvee.</p>
             <a href="{% url 'menu' %}" class="btn btn-brand">Retour au menu</a>
         </div>
-    {% endif %}
-</section>
+    </section>
+{% endif %}
 {% endblock %}

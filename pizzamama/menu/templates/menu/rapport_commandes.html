@@ -1,19 +1,51 @@
-﻿{% extends 'menu/base.html' %}
+{% extends 'menu/base.html' %}
 {% load menu_extras %}
 
 {% block title %}Pizza Mama | Rapport commandes{% endblock %}
 
 {% block content %}
-<section class="surface-card p-3 p-md-4 float-enter mb-3">
-    <div class="section-head">
+<section class="surface-card p-3 p-md-4 report-hero float-enter mb-3">
+    <div class="section-head mb-3">
         <div>
             <span class="section-kicker">Pilotage business</span>
-            <h1 class="font-head title-lg mt-2">Rapport des commandes</h1>
+            <h1 class="font-head title-lg mt-2 mb-1">Rapport des commandes</h1>
+            <p class="tiny-meta mb-0">Lecture concentree sur la periode {{ selected_period_label|lower }} avec indicateurs de volume, de conversion et de paiement.</p>
         </div>
         <a href="{% url 'menu' %}" class="back-link">Retour menu</a>
     </div>
 
-    <div class="report-grid mb-3">
+    <div class="filter-pill-rail mb-4">
+        {% for option in period_options %}
+            <a href="?period={{ option.value }}" class="filter-pill {% if option.active %}active{% endif %}">{{ option.label }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="report-kpi-grid">
+        <article class="report-kpi-card">
+            <span class="tiny-meta">Commandes sur la periode</span>
+            <strong class="kpi-value">{{ stats_period.nb }}</strong>
+            <small>{{ selected_period_label }}</small>
+        </article>
+        <article class="report-kpi-card">
+            <span class="tiny-meta">Chiffre d'affaires</span>
+            <strong class="kpi-value">{{ stats_period.ca|ariary }}</strong>
+            <small>sur la periode selectionnee</small>
+        </article>
+        <article class="report-kpi-card">
+            <span class="tiny-meta">Ticket moyen</span>
+            <strong class="kpi-value">{{ average_ticket|ariary }}</strong>
+            <small>moyenne par commande</small>
+        </article>
+        <article class="report-kpi-card">
+            <span class="tiny-meta">Execution</span>
+            <strong class="kpi-value">{{ completion_rate }}%</strong>
+            <small>{{ paid_rate }}% de commandes payees</small>
+        </article>
+    </div>
+</section>
+
+<section class="surface-card p-3 p-md-4 float-enter float-delay-1 mb-3">
+    <div class="report-secondary-grid">
         <article class="stat-card">
             <div class="tiny-meta">Aujourd'hui</div>
             <div class="stat-value">{{ stats_jour.nb }}</div>
@@ -30,90 +62,105 @@
             <div>{{ stats_global.ca|ariary }}</div>
         </article>
     </div>
+</section>
 
-    <div class="surface-card-soft report-highlight p-3">
-        <strong>Lecture rapide:</strong> ce tableau sert a suivre le volume, les encaissements et les references recentes sans passer par l'admin complet.
+<section class="surface-card p-3 p-md-4 float-enter float-delay-2 mb-3">
+    <div class="report-analysis-grid">
+        <article class="analysis-card">
+            <div class="section-head mb-3">
+                <h2 class="font-head title-md">Statuts commandes</h2>
+            </div>
+            <div class="metric-bar-stack">
+                {% for stat in status_breakdown %}
+                    <div class="metric-bar-row">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <span class="chip chip-{{ stat.theme }}">{{ stat.label }}</span>
+                            <strong>{{ stat.total }}</strong>
+                        </div>
+                        <div class="metric-bar-track">
+                            <div class="metric-bar-fill theme-{{ stat.theme }}" style="width: {{ stat.percent }}%;"></div>
+                        </div>
+                        <small class="tiny-meta">{{ stat.percent }}% de la periode</small>
+                    </div>
+                {% empty %}
+                    <p class="mb-0 text-muted-soft">Aucune donnee sur cette periode.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="analysis-card">
+            <div class="section-head mb-3">
+                <h2 class="font-head title-md">Statuts paiements</h2>
+            </div>
+            <div class="metric-bar-stack">
+                {% for stat in payment_breakdown %}
+                    <div class="metric-bar-row">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <span class="chip chip-{{ stat.theme }}">{{ stat.label }}</span>
+                            <strong>{{ stat.total }}</strong>
+                        </div>
+                        <div class="metric-bar-track">
+                            <div class="metric-bar-fill theme-{{ stat.theme }}" style="width: {{ stat.percent }}%;"></div>
+                        </div>
+                        <small class="tiny-meta">{{ stat.percent }}% de la periode</small>
+                    </div>
+                {% empty %}
+                    <p class="mb-0 text-muted-soft">Aucune donnee sur cette periode.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="analysis-card">
+            <div class="section-head mb-3">
+                <h2 class="font-head title-md">Top pizzas</h2>
+            </div>
+            <div class="metric-bar-stack">
+                {% for pizza in top_pizzas %}
+                    <div class="metric-bar-row">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <strong>{{ pizza.pizza_nom }}</strong>
+                            <span>x{{ pizza.quantite }}</span>
+                        </div>
+                        <div class="metric-bar-track">
+                            <div class="metric-bar-fill theme-brand" style="width: {{ pizza.bar_percent }}%;"></div>
+                        </div>
+                        <small class="tiny-meta">{{ pizza.ca|ariary }}</small>
+                    </div>
+                {% empty %}
+                    <p class="mb-0 text-muted-soft">Aucune vente sur cette periode.</p>
+                {% endfor %}
+            </div>
+        </article>
     </div>
 </section>
 
-<section class="surface-card p-3 p-md-4 float-enter float-delay-1">
-    <div class="row g-3 mb-3">
-        <div class="col-12 col-lg-4">
-            <div class="surface-card-soft p-3 h-100">
-                <h2 class="font-head title-md mb-3">Statuts commandes</h2>
-                <ul class="list-group cart-list">
-                    {% for stat in status_breakdown %}
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>{{ stat.label }}</span>
-                            <strong>{{ stat.total }}</strong>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item">Aucune donnee.</li>
-                    {% endfor %}
-                </ul>
-            </div>
+<section class="surface-card p-3 p-md-4 float-enter float-delay-3">
+    <div class="section-head mb-3">
+        <div>
+            <span class="section-kicker">Commandes recentes</span>
+            <h2 class="font-head title-md mt-2 mb-0">Les dernieres references de la periode</h2>
         </div>
-
-        <div class="col-12 col-lg-4">
-            <div class="surface-card-soft p-3 h-100">
-                <h2 class="font-head title-md mb-3">Statuts paiements</h2>
-                <ul class="list-group cart-list">
-                    {% for stat in payment_breakdown %}
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>{{ stat.label }}</span>
-                            <strong>{{ stat.total }}</strong>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item">Aucune donnee.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-12 col-lg-4">
-            <div class="surface-card-soft p-3 h-100">
-                <h2 class="font-head title-md mb-3">Top pizzas</h2>
-                <ul class="list-group cart-list">
-                    {% for pizza in top_pizzas %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between">
-                                <span>{{ pizza.pizza_nom }}</span>
-                                <strong>x{{ pizza.quantite }}</strong>
-                            </div>
-                            <small class="text-muted-soft">{{ pizza.ca|ariary }}</small>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item">Aucune donnee.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+        <span class="tag-pill">{{ recent_orders|length }} affichees</span>
     </div>
-
-    <div class="surface-card-soft p-3">
-        <div class="section-head mb-3">
-            <h2 class="font-head title-md">Commandes recentes</h2>
-            <span class="tag-pill">{{ recent_orders|length }} affichees</span>
-        </div>
-        <div class="stack-list recent-list">
-            {% for commande in recent_orders %}
-                <article class="list-group-item">
-                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-2">
-                        <div>
-                            <strong>{{ commande.reference }}</strong>
-                            <div class="tiny-meta">{{ commande.nom }} - {{ commande.date_commande|date:"d/m/Y H:i" }}</div>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2 align-items-center">
-                            <span class="chip chip-{{ commande.status_theme }}">{{ commande.get_status_display }}</span>
-                            <span class="chip chip-{{ commande.payment_theme }}">{{ commande.get_payment_status_display }}</span>
-                            <strong>{{ commande.total|ariary }}</strong>
-                        </div>
+    <div class="report-recent-grid">
+        {% for commande in recent_orders %}
+            <article class="recent-order-card">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                    <div>
+                        <strong>{{ commande.reference }}</strong>
+                        <div class="tiny-meta">{{ commande.nom }} - {{ commande.date_commande|date:"d/m/Y H:i" }}</div>
                     </div>
-                </article>
-            {% empty %}
-                <p class="mb-0 text-muted-soft">Aucune commande recente.</p>
-            {% endfor %}
-        </div>
+                    <strong>{{ commande.total|ariary }}</strong>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="chip chip-{{ commande.status_theme }}">{{ commande.get_status_display }}</span>
+                    <span class="chip chip-{{ commande.payment_theme }}">{{ commande.get_payment_status_display }}</span>
+                </div>
+                <p class="tiny-meta mb-0">{{ commande.status_summary }}</p>
+            </article>
+        {% empty %}
+            <p class="mb-0 text-muted-soft">Aucune commande recente.</p>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}

@@ -1,8 +1,11 @@
-﻿from django.conf import settings
+from decimal import Decimal
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Q
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -17,7 +20,24 @@ from .services.cart import (
     decrease_pizza_quantity,
     remove_pizza_from_cart,
 )
-from .services.orders import create_order_from_form, get_order_report_data
+from .services.orders import create_order_from_form, get_order_report_data, get_storefront_highlights
+
+
+ZERO = Decimal("0.00")
+PAYMENT_METHOD_PRESENTATION = {
+    Commande.PaiementMethode.CASH: {
+        "eyebrow": "Simple",
+        "description": "Paiement a la reception.",
+    },
+    Commande.PaiementMethode.MOBILE_MONEY: {
+        "eyebrow": "Mobile",
+        "description": "Confirmation par l'equipe.",
+    },
+    Commande.PaiementMethode.CARTE: {
+        "eyebrow": "Carte",
+        "description": "Selon disponibilite.",
+    },
+}
 
 
 def _safe_next_url(request):
@@ -31,8 +51,26 @@ def _safe_next_url(request):
     return reverse("menu")
 
 
+def _payment_method_options(selected_value):
+    current = str(selected_value or Commande.PaiementMethode.CASH)
+    options = []
+    for value, label in Commande.PaiementMethode.choices:
+        presentation = PAYMENT_METHOD_PRESENTATION.get(value, {})
+        options.append(
+            {
+                "value": value,
+                "label": label,
+                "eyebrow": presentation.get("eyebrow", "Paiement"),
+                "description": presentation.get("description", "Valide par l'equipe."),
+                "checked": current == value,
+                "id": f"payment_{value}",
+            }
+        )
+    return options
+
+
 def liste_pizzas(request, categorie_id=None):
-    categories = Categorie.objects.all()
+    categories = Categorie.objects.annotate(pizza_count=Count("pizzas")).order_by("nom")
     categorie_active = None
     query = request.GET.get("q", "").strip()
     pizzas = Pizza.objects.select_related("categorie").all()
@@ -44,7 +82,14 @@ def liste_pizzas(request, categorie_id=None):
     if query:
         pizzas = pizzas.filter(Q(nom__icontains=query) | Q(description__icontains=query))
 
+    storefront = get_storefront_highlights()
     cart_context = build_cart_context(request.session)
+    if not query and categorie_active is None:
+        hero_pizzas = storefront["featured_pizzas"]
+    elif not query:
+        hero_pizzas = list(pizzas[:3])
+    else:
+        hero_pizzas = []
 
     return render(
         request,
@@ -54,6 +99,9 @@ def liste_pizzas(request, categorie_id=None):
             "pizzas": pizzas,
             "categorie_active": categorie_active,
             "query": query,
+            "hero_pizzas": hero_pizzas,
+            "pizza_total": pizzas.count(),
+            "business_stats": storefront["business_stats"],
             **cart_context,
         },
     )
@@ -115,10 +163,18 @@ def validation_commande(request):
     else:
         form = CommandeForm(initial=initial)
 
+    selected_payment = (
+        form.data.get("payment_method") if form.is_bound else form.initial.get("payment_method")
+    )
+
     return render(
         request,
         "menu/validation_commande.html",
-        {"form": form, **cart_context},
+        {
+            "form": form,
+            "payment_method_options": _payment_method_options(selected_payment),
+            **cart_context,
+        },
     )
 
 
@@ -127,7 +183,11 @@ def confirmation_commande(request):
     commande = None
     if reference:
         commande = Commande.objects.prefetch_related("items").filter(reference__iexact=reference).first()
-    return render(request, "menu/confirmation_commande.html", {"commande": commande})
+    return render(
+        request,
+        "menu/confirmation_commande.html",
+        {"commande": commande, "support_email": settings.DEFAULT_FROM_EMAIL},
+    )
 
 
 def inscription(request):
@@ -170,7 +230,23 @@ def deconnexion(request):
 @login_required
 def mes_commandes(request):
     commandes = Commande.objects.filter(user=request.user).prefetch_related("items")
-    return render(request, "menu/mes_commandes.html", {"commandes": commandes})
+    history_stats = {
+        "order_count": commandes.count(),
+        "active_count": commandes.exclude(
+            status__in=[Commande.Statut.LIVREE, Commande.Statut.ANNULEE]
+        ).count(),
+        "total_spent": commandes.aggregate(total_spent=Coalesce(Sum("total"), ZERO))["total_spent"],
+        "last_order": commandes.first(),
+    }
+    return render(
+        request,
+        "menu/mes_commandes.html",
+        {
+            "commandes": commandes,
+            "history_stats": history_stats,
+            "support_email": settings.DEFAULT_FROM_EMAIL,
+        },
+    )
 
 
 def suivi_commande(request):
@@ -189,7 +265,15 @@ def suivi_commande(request):
         if commande is None:
             messages.error(request, "Aucune commande trouvee avec ces informations.")
 
-    return render(request, "menu/suivi_commande.html", {"form": form, "commande": commande})
+    return render(
+        request,
+        "menu/suivi_commande.html",
+        {
+            "form": form,
+            "commande": commande,
+            "support_email": settings.DEFAULT_FROM_EMAIL,
+        },
+    )
 
 
 def _is_staff(user):
@@ -198,8 +282,13 @@ def _is_staff(user):
 
 @user_passes_test(_is_staff)
 def rapport_commandes(request):
-    return render(request, "menu/rapport_commandes.html", get_order_report_data())
+    period = request.GET.get("period", "30d")
+    return render(request, "menu/rapport_commandes.html", get_order_report_data(period))
 
 
 def A_propos(request):
-    return render(request, "menu/A_propos.html", {"support_email": settings.DEFAULT_FROM_EMAIL})
+    context = {
+        "support_email": settings.DEFAULT_FROM_EMAIL,
+        **get_storefront_highlights(),
+    }
+    return render(request, "menu/A_propos.html", context)

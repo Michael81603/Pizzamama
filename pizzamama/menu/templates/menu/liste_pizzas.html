@@ -1,146 +1,241 @@
-﻿{% extends 'menu/base.html' %}
+{% extends 'menu/base.html' %}
 {% load menu_extras %}
 
 {% block title %}Pizza Mama | Menu{% endblock %}
 
 {% block content %}
-<div class="layout-menu-shell">
+<div class="layout-menu-shell" data-menu-shell>
     <div id="menu-browser" class="menu-browser float-enter" data-menu-browser aria-live="polite">
-        <section class="surface-card p-3 p-md-4 mb-3">
-            <div class="section-head menu-toolbar">
-                <div>
-                    <span class="section-kicker">Selection du jour</span>
-                    <h1 class="font-head title-lg mt-2 mb-1">
+        <section class="surface-card menu-hero-shell">
+            <div class="menu-hero-layout">
+                <div class="menu-hero-copy">
+                    <span class="section-kicker">Catalogue Pizza Mama</span>
+                    <h1 class="font-head title-lg mt-2 mb-2">
                         {% if categorie_active %}
                             {{ categorie_active.nom }}
+                        {% elif query %}
+                            Resultats de recherche
                         {% else %}
-                            Nos pizzas
+                            Choisissez vos pizzas
                         {% endif %}
                     </h1>
-                    <p class="tiny-meta mb-0">
+                    <p class="text-muted-soft mb-0">
                         {% if query %}
-                            Resultats pour "{{ query }}"
+                            Resultats pour "{{ query }}".
+                        {% elif categorie_active %}
+                            Les pizzas de la categorie {{ categorie_active.nom }}.
                         {% else %}
-                            Composez votre panier puis finalisez la commande en ligne.
+                            Ajoutez au panier et commandez.
                         {% endif %}
                     </p>
+                </div>
+                <div class="menu-hero-rail">
+                    <article class="menu-mini-stat">
+                        <span class="tiny-meta">Resultats</span>
+                        <strong>{{ pizza_total }}</strong>
+                        <small>pizza{{ pizza_total|pluralize }}</small>
+                    </article>
+                    <article class="menu-mini-stat">
+                        <span class="tiny-meta">Panier</span>
+                        <strong>{{ panier_count }}</strong>
+                        <small>article{{ panier_count|pluralize }}</small>
+                    </article>
+                    <article class="menu-mini-stat">
+                        <span class="tiny-meta">Total</span>
+                        <strong>{{ total|ariary }}</strong>
+                        <small>montant actuel</small>
+                    </article>
+                    <article class="menu-mini-stat">
+                        <span class="tiny-meta">Catalogue</span>
+                        <strong>{{ business_stats.category_count }}</strong>
+                        <small>categories</small>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="surface-card menu-controls-shell">
+            <div class="menu-controls-top">
+                <div>
+                    <span class="section-kicker">Filtrer le menu</span>
+                    <h2 class="font-head title-md mt-2 mb-1">Recherche et categories</h2>
                 </div>
                 <form class="search-bar" method="get" action="{% url 'menu' %}" data-menu-search>
                     <input class="form-control" type="text" name="q" placeholder="Rechercher une pizza, un ingredient..." value="{{ query }}">
                     <button class="btn btn-accent" type="submit">Rechercher</button>
                 </form>
             </div>
+            <div class="menu-chip-rail" data-category-stack>
+                <a href="{% url 'menu' %}" class="menu-filter-pill {% if not categorie_active %}active{% endif %}" data-menu-link>
+                    <span>Toutes les pizzas</span>
+                    <small>{{ business_stats.pizza_count }}</small>
+                </a>
+                {% for cat in categories %}
+                    <a href="{% url 'menu_par_categorie' cat.id %}" class="menu-filter-pill {% if categorie_active and categorie_active.id == cat.id %}active{% endif %}" data-menu-link>
+                        <span>{{ cat.nom }}</span>
+                        <small>{{ cat.pizza_count }}</small>
+                    </a>
+                {% endfor %}
+                {% if query or categorie_active %}
+                    <a href="{% url 'menu' %}" class="menu-filter-pill menu-filter-pill-ghost" data-menu-link data-menu-reset>
+                        <span>Reinitialiser</span>
+                        <small>retour</small>
+                    </a>
+                {% endif %}
+            </div>
         </section>
 
-        <div class="menu-browser-layout">
-            <aside class="surface-card sidebar-panel sticky-shell">
-                <div class="section-head">
-                    <h2 class="font-head title-md">Categories</h2>
-                    <span class="tag-pill">{{ categories|length }} total</span>
+        <section class="surface-card-soft mobile-cart-banner">
+            <div class="mobile-cart-banner-top">
+                <div>
+                    <span class="tiny-meta">Panier</span>
+                    <strong>{{ panier_count }} article{{ panier_count|pluralize }}</strong>
                 </div>
-                <p class="category-note">Filtrez rapidement le catalogue par style de pizza.</p>
-                <div class="category-stack d-grid gap-2" data-category-stack>
-                    <a href="{% url 'menu' %}" class="btn {% if not categorie_active %}active{% endif %}">Toutes les pizzas</a>
-                    {% for cat in categories %}
-                        <a href="{% url 'menu_par_categorie' cat.id %}" class="btn {% if categorie_active and categorie_active.id == cat.id %}active{% endif %}">
-                            {{ cat.nom }}
-                        </a>
-                    {% endfor %}
+                <span class="tag-pill">{{ total|ariary }}</span>
+            </div>
+            {% if panier_lignes %}
+                <div class="mobile-cart-banner-actions">
+                    <a href="{% url 'validation_commande' %}" class="btn btn-brand">Commander</a>
+                    <a href="#panier" class="btn btn-outline-brand">Voir le detail</a>
                 </div>
-            </aside>
+            {% else %}
+                <p class="mb-0 text-muted-soft">Ajoutez une pizza pour commencer.</p>
+            {% endif %}
+        </section>
 
-            <section class="surface-card content-panel">
+        {% if hero_pizzas %}
+            <section class="surface-card menu-showcase-shell">
                 <div class="section-head">
                     <div>
-                        <span class="section-kicker">Catalogue</span>
-                        <h2 class="font-head title-md mt-2">{{ pizzas|length }} resultat{{ pizzas|length|pluralize }}</h2>
+                        <span class="section-kicker">Suggestions</span>
+                        <h2 class="font-head title-md mt-2 mb-0">A voir aussi</h2>
                     </div>
-                    {% if query or categorie_active %}
-                        <a href="{% url 'menu' %}" class="back-link" data-menu-reset>Reinitialiser</a>
-                    {% endif %}
                 </div>
-
-                <div class="pizza-grid">
-                    {% for pizza in pizzas %}
-                        <article class="pizza-card" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ pizza.description }}">
-                            <img src="{{ pizza.image.url }}" alt="{{ pizza.nom }}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                    <div>
-                                        <h3 class="title-md font-head mb-1">{{ pizza.nom }}</h3>
-                                        <span class="tag-pill">{{ pizza.categorie.nom }}</span>
-                                    </div>
-                                    <span class="pizza-price">{{ pizza.prix|ariary }}</span>
+                <div class="menu-showcase-grid">
+                    {% for pizza in hero_pizzas %}
+                        <article class="menu-showcase-card">
+                            <div class="menu-showcase-media">
+                                <img src="{{ pizza.image.url }}" alt="{{ pizza.nom }}">
+                            </div>
+                            <div class="menu-showcase-body">
+                                <span class="tag-pill mb-2">{{ pizza.categorie.nom }}</span>
+                                <h3 class="font-head title-md mb-2">{{ pizza.nom }}</h3>
+                                <p class="text-muted-soft small mb-3">{{ pizza.description|truncatechars:110 }}</p>
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <span class="menu-showcase-price">{{ pizza.prix|ariary }}</span>
+                                    <a href="#pizza-{{ pizza.id }}" class="back-link">Voir la fiche</a>
                                 </div>
-                                <p class="text-muted-soft small mb-3">{{ pizza.description|truncatechars:96 }}</p>
-                                <form method="post" action="{% url 'ajouter_panier' pizza.id %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                    <button class="btn btn-brand w-100">Ajouter au panier</button>
-                                </form>
                             </div>
                         </article>
-                    {% empty %}
-                        <div class="surface-card-soft empty-state p-4">
-                            <h3 class="empty-state-title">Aucune pizza trouvee</h3>
-                            <p class="mb-0 text-muted-soft">Essaie un autre mot-cle ou retire le filtre de categorie.</p>
-                        </div>
                     {% endfor %}
                 </div>
             </section>
-        </div>
+        {% endif %}
+
+        <section class="surface-card content-panel">
+            <div class="section-head">
+                <div>
+                    <span class="section-kicker">Catalogue</span>
+                    <h2 class="font-head title-md mt-2 mb-1">{{ pizza_total }} resultat{{ pizza_total|pluralize }}</h2>
+                </div>
+            </div>
+
+            <div class="pizza-grid pizza-grid-pro">
+                {% for pizza in pizzas %}
+                    <article id="pizza-{{ pizza.id }}" class="pizza-card pizza-card-pro" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ pizza.description }}">
+                        <div class="pizza-media-shell">
+                            <img src="{{ pizza.image.url }}" alt="{{ pizza.nom }}">
+                            <span class="tag-pill">{{ pizza.categorie.nom }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="pizza-card-head mb-2">
+                                <div>
+                                    <h3 class="title-md font-head mb-1">{{ pizza.nom }}</h3>
+                                </div>
+                                <span class="pizza-price">{{ pizza.prix|ariary }}</span>
+                            </div>
+                            <p class="pizza-card-copy mb-3">{{ pizza.description|truncatechars:130 }}</p>
+                            <div class="pizza-card-foot">
+                                <form method="post" action="{% url 'ajouter_panier' pizza.id %}" data-cart-submit>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button class="btn btn-brand">Ajouter au panier</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="surface-card-soft empty-state p-4">
+                        <h3 class="empty-state-title">Aucune pizza trouvee</h3>
+                        <p class="mb-0 text-muted-soft">Essayez un autre mot-cle.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
     </div>
 
-    <aside id="panier" class="surface-card cart-panel float-enter float-delay-3 sticky-shell">
-        <div class="section-head">
+    <aside id="panier" class="surface-card cart-panel float-enter float-delay-3 sticky-shell" data-cart-panel>
+        <div class="cart-panel-head mb-3">
             <div>
-                <h2 class="font-head title-md">Panier</h2>
-                <p class="tiny-meta mb-0">{{ panier_count }} article{{ panier_count|pluralize }} selectionne{{ panier_count|pluralize }}</p>
+                <span class="section-kicker">Panier</span>
+                <h2 class="font-head title-md mt-2 mb-1">Votre panier</h2>
+                <p class="tiny-meta mb-0">{{ panier_count }} article{{ panier_count|pluralize }} dans le panier</p>
             </div>
             <span class="tag-pill">{{ total|ariary }}</span>
         </div>
 
         {% if panier_lignes %}
-            <ul class="list-group cart-list mb-3">
+            <div class="cart-summary-banner">
+                <strong>Total actuel</strong>
+                <span>{{ total|ariary }}</span>
+            </div>
+
+            <ul class="list-group cart-list cart-list-pro mb-3">
                 {% for item in panier_lignes %}
                     <li class="list-group-item">
-                        <div class="d-flex justify-content-between gap-2 mb-2">
+                        <div class="cart-item-top">
                             <div>
                                 <strong>{{ item.nom }}</strong><br>
                                 <small class="text-muted-soft">{{ item.prix|ariary }} l'unite</small>
                             </div>
                             <strong class="cart-line-price">{{ item.line_total|ariary }}</strong>
                         </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <form method="post" action="{% url 'diminuer_panier' item.id %}">
+                        <div class="cart-item-actions">
+                            <div class="quantity-cluster">
+                                <form method="post" action="{% url 'diminuer_panier' item.id %}" data-cart-submit>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button class="btn btn-outline-brand btn-sm" aria-label="Diminuer">-</button>
+                                </form>
+                                <span class="quantity-pill">{{ item.quantite }}</span>
+                                <form method="post" action="{% url 'ajouter_panier' item.id %}" data-cart-submit>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button class="btn btn-outline-brand btn-sm" aria-label="Augmenter">+</button>
+                                </form>
+                            </div>
+                            <form method="post" action="{% url 'supprimer_panier' item.id %}" data-cart-submit>
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <button class="btn btn-outline-brand btn-sm" aria-label="Diminuer">-</button>
-                            </form>
-                            <span class="fw-bold px-2">{{ item.quantite }}</span>
-                            <form method="post" action="{% url 'ajouter_panier' item.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <button class="btn btn-outline-brand btn-sm" aria-label="Augmenter">+</button>
-                            </form>
-                            <form method="post" action="{% url 'supprimer_panier' item.id %}" class="ms-auto">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                                <button class="btn btn-outline-secondary btn-sm" aria-label="Supprimer">Retirer</button>
+                                <button class="btn btn-outline-secondary btn-sm" aria-label="Retirer">Retirer</button>
                             </form>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
 
-            <div class="app-total">
-                <p class="mb-2 d-flex justify-content-between">
-                    <span class="fw-bold">Total</span>
-                    <span class="pizza-price mb-0">{{ total|ariary }}</span>
-                </p>
-                <div class="d-grid gap-2">
+            <div class="cart-checkout-card">
+                <div class="summary-line">
+                    <span>Sous-total</span>
+                    <strong>{{ total|ariary }}</strong>
+                </div>
+                <div class="summary-line summary-line-muted">
+                    <span>Suivi</span>
+                    <strong>apres validation</strong>
+                </div>
+                <div class="d-grid gap-2 mt-3">
                     <a href="{% url 'validation_commande' %}" class="btn btn-brand">Commander</a>
-                    <form method="post" action="{% url 'vider_panier' %}">
+                    <form method="post" action="{% url 'vider_panier' %}" data-cart-submit>
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <button class="btn btn-accent w-100">Vider le panier</button>
@@ -148,11 +243,12 @@
                 </div>
             </div>
         {% else %}
-            <div class="surface-card-soft empty-state p-4">
+            <div class="surface-card-soft empty-state p-4 mb-3">
                 <h3 class="empty-state-title">Panier vide</h3>
-                <p class="mb-0 text-muted-soft">Ajoute une ou plusieurs pizzas pour preparer ta commande.</p>
+                <p class="mb-0 text-muted-soft">Ajoutez une pizza pour commencer.</p>
             </div>
         {% endif %}
+
     </aside>
 </div>
 {% endblock %}
@@ -160,8 +256,12 @@
 {% block extra_js %}
 <script>
     (() => {
+        const shell = document.querySelector("[data-menu-shell]");
         const browserRoot = document.querySelector("[data-menu-browser]");
-        if (!browserRoot) {
+        const cartPanel = document.querySelector("[data-cart-panel]");
+        const navCartChip = document.querySelector("[data-nav-cart-chip]");
+
+        if (!shell || !browserRoot) {
             return;
         }
 
@@ -186,15 +286,38 @@
             });
         };
 
-        const setLoadingState = (isLoading) => {
-            browserRoot.classList.toggle("is-loading", isLoading);
-            browserRoot.setAttribute("aria-busy", isLoading ? "true" : "false");
+        const setRegionLoading = (element, isLoading) => {
+            if (!element) {
+                return;
+            }
+            element.classList.toggle("is-loading", isLoading);
+            element.setAttribute("aria-busy", isLoading ? "true" : "false");
         };
 
-        const replaceBrowser = (htmlText) => {
-            const parser = new DOMParser();
-            const nextDocument = parser.parseFromString(htmlText, "text/html");
+        const setButtonLoading = (button, isLoading) => {
+            if (!button) {
+                return;
+            }
+            button.disabled = isLoading;
+            button.classList.toggle("is-busy", isLoading);
+        };
+
+        const swapNodeContent = (currentElement, nextElement, { animate = false } = {}) => {
+            if (!currentElement || !nextElement) {
+                return;
+            }
+            currentElement.innerHTML = nextElement.innerHTML;
+            if (animate) {
+                currentElement.classList.remove("is-swapping");
+                void currentElement.offsetWidth;
+                currentElement.classList.add("is-swapping");
+            }
+        };
+
+        const replaceShellFromDocument = (nextDocument) => {
             const nextBrowser = nextDocument.querySelector("[data-menu-browser]");
+            const nextCart = nextDocument.querySelector("[data-cart-panel]");
+            const nextNavCart = nextDocument.querySelector("[data-nav-cart-chip]");
 
             if (!nextBrowser) {
                 window.location.reload();
@@ -202,25 +325,39 @@
             }
 
             destroyTooltips(browserRoot);
-            browserRoot.innerHTML = nextBrowser.innerHTML;
-            browserRoot.classList.remove("is-swapping");
-            void browserRoot.offsetWidth;
-            browserRoot.classList.add("is-swapping");
+            swapNodeContent(browserRoot, nextBrowser, { animate: true });
+            if (nextCart) {
+                swapNodeContent(cartPanel, nextCart);
+            }
+            if (nextNavCart && navCartChip) {
+                navCartChip.className = nextNavCart.className;
+                navCartChip.setAttribute("href", nextNavCart.getAttribute("href"));
+                navCartChip.innerHTML = nextNavCart.innerHTML;
+            }
+
             document.title = nextDocument.title || document.title;
             initTooltips(browserRoot);
         };
 
-        const loadBrowser = async (url, { push = true } = {}) => {
+        const parseDocument = (htmlText) => new DOMParser().parseFromString(htmlText, "text/html");
+
+        const requestPage = async (url, { method = "GET", body = null, push = false, form = null, button = null } = {}) => {
             if (currentRequest) {
                 currentRequest.abort();
             }
 
             currentRequest = new AbortController();
-            setLoadingState(true);
+            const isCartMutation = method !== "GET";
+            setRegionLoading(browserRoot, !isCartMutation);
+            setRegionLoading(cartPanel, isCartMutation);
+            setButtonLoading(button, true);
 
             try {
                 const response = await fetch(url, {
+                    method,
+                    body,
                     signal: currentRequest.signal,
+                    credentials: "same-origin",
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
                     },
@@ -231,51 +368,72 @@
                 }
 
                 const htmlText = await response.text();
-                replaceBrowser(htmlText);
+                const nextDocument = parseDocument(htmlText);
+                replaceShellFromDocument(nextDocument);
 
                 if (push) {
                     window.history.pushState({ url }, "", url);
                 }
             } catch (error) {
-                if (error.name !== "AbortError") {
-                    window.location.href = url;
+                if (error.name === "AbortError") {
+                    return;
                 }
+                if (form) {
+                    form.submit();
+                    return;
+                }
+                window.location.href = url;
             } finally {
-                setLoadingState(false);
+                setRegionLoading(browserRoot, false);
+                setRegionLoading(cartPanel, false);
+                setButtonLoading(button, false);
             }
         };
 
-        browserRoot.addEventListener("click", (event) => {
-            const link = event.target.closest("[data-category-stack] a, [data-menu-reset]");
-            if (!link || event.defaultPrevented || link.target === "_blank" || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+        shell.addEventListener("click", (event) => {
+            const link = event.target.closest("[data-menu-link]");
+            if (!link || event.defaultPrevented || link.target === "_blank" || link.hasAttribute("download") || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
                 return;
             }
 
             event.preventDefault();
-            loadBrowser(link.href);
+            requestPage(link.href, { push: true });
         });
 
-        browserRoot.addEventListener("submit", (event) => {
-            const form = event.target.closest("[data-menu-search]");
-            if (!form) {
+        shell.addEventListener("submit", (event) => {
+            const searchForm = event.target.closest("[data-menu-search]");
+            if (searchForm) {
+                event.preventDefault();
+                const action = searchForm.getAttribute("action") || window.location.pathname;
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                const queryString = params.toString();
+                const url = queryString ? `${action}?${queryString}` : action;
+                requestPage(url, { push: true });
+                return;
+            }
+
+            const cartForm = event.target.closest("[data-cart-submit]");
+            if (!cartForm) {
                 return;
             }
 
             event.preventDefault();
-            const action = form.getAttribute("action") || window.location.pathname;
-            const formData = new FormData(form);
-            const params = new URLSearchParams(formData);
-            const queryString = params.toString();
-            const url = queryString ? `${action}?${queryString}` : action;
-            loadBrowser(url);
+            const submitter = event.submitter || cartForm.querySelector("button[type='submit'], button:not([type])");
+            requestPage(cartForm.action, {
+                method: (cartForm.method || "POST").toUpperCase(),
+                body: new FormData(cartForm),
+                form: cartForm,
+                button: submitter,
+            });
         });
 
         window.addEventListener("popstate", () => {
-            loadBrowser(window.location.href, { push: false });
+            requestPage(window.location.href, { push: false });
         });
 
         browserRoot.addEventListener("animationend", (event) => {
-            if (event.animationName === "browserSwapIn") {
+            if (event.animationName === "browserSwapRefined") {
                 browserRoot.classList.remove("is-swapping");
             }
         });

@@ -1,4 +1,4 @@
-﻿{% load static menu_extras %}
+{% load static menu_extras %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -50,13 +50,13 @@
                     </ul>
 
                     <div class="nav-actions">
-                        <a href="{% url 'menu' %}#panier" class="cart-chip {% if nav_cart_has_items %}has-items{% endif %}">
+                        <a href="{% url 'menu' %}#panier" class="cart-chip {% if nav_cart_has_items %}has-items{% endif %}" data-nav-cart-chip>
                             <span class="cart-chip-label">Panier</span>
                             <strong>{{ nav_cart_count }}</strong>
                             <small>{{ nav_cart_total|ariary }}</small>
                         </a>
                         {% if request.user.is_authenticated %}
-                            <span class="tiny-meta">Bonjour {{ request.user.username }}</span>
+                            <span class="tiny-meta">Bonjour {{ request.user.first_name|default:request.user.username }}</span>
                             <form method="post" action="{% url 'deconnexion' %}" class="m-0">
                                 {% csrf_token %}
                                 <button class="btn btn-outline-brand btn-sm">Deconnexion</button>
@@ -78,12 +78,22 @@
 </main>
 
 <footer class="shell site-footer">
-    <div class="surface-card-soft site-footer-inner">
-        <div>
-            <strong class="font-head">Pizza Mama</strong>
-            <p class="mb-0 tiny-meta">Catalogue, commande, suivi et back-office reunis dans une seule application Django.</p>
+    <div class="surface-card-soft site-footer-panel">
+        <div class="site-footer-grid">
+            <div>
+                <span class="section-kicker mb-3">Pizza Mama</span>
+                <h2 class="font-head title-md mt-2 mb-2">Commander. Suivre. Recommander.</h2>
+                <p class="tiny-meta mb-0">Le principal, sans detour.</p>
+            </div>
+            <div>
+                <strong class="footer-heading">Navigation</strong>
+                <div class="footer-link-list">
+                    <a href="{% url 'A_propos' %}">Accueil</a>
+                    <a href="{% url 'menu' %}">Voir le menu</a>
+                    <a href="{% url 'suivi_commande' %}">Suivre une commande</a>
+                </div>
+            </div>
         </div>
-        <a href="{% url 'menu' %}" class="back-link">Commander maintenant</a>
     </div>
 </footer>
 
@@ -91,4 +101,3 @@
 {% block extra_js %}{% endblock %}
 </body>
 </html>
-

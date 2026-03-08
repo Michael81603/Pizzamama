@@ -1,10 +1,10 @@
-﻿{% extends 'menu/base.html' %}
+{% extends 'menu/base.html' %}
 
 {% block title %}Pizza Mama | Inscription{% endblock %}
 
 {% block content %}
 <div class="auth-layout">
-    <section class="surface-card auth-wrap float-enter">
+    <section class="surface-card auth-wrap auth-card-pro float-enter">
         <div class="section-head mb-3">
             <div>
                 <span class="section-kicker">Compte client</span>
@@ -42,14 +42,11 @@
         <a href="{% url 'connexion' %}" class="btn btn-outline-brand w-100 mt-2">J'ai deja un compte</a>
     </section>
 
-    <aside class="surface-card-soft auth-side float-enter float-delay-1">
-        <span class="section-kicker">Compte</span>
-        <h2 class="font-head title-md mt-2 mb-3">Un espace client simple</h2>
-        <ul class="detail-list mb-0">
-            <li>Associer automatiquement les futures commandes a votre profil.</li>
-            <li>Garder un historique clair de vos achats.</li>
-            <li>Acceder a un suivi plus rapide apres validation.</li>
-        </ul>
+    <aside class="auth-support-stack">
+        <section class="surface-card-soft auth-side float-enter float-delay-1">
+            <span class="section-kicker">Utile</span>
+            <p class="mb-0 text-muted-soft">Les prochaines commandes seront reliees automatiquement a votre compte.</p>
+        </section>
     </aside>
 </div>
 {% endblock %}

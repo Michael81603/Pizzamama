@@ -1,11 +1,11 @@
-﻿{% extends 'menu/base.html' %}
+{% extends 'menu/base.html' %}
 {% load menu_extras %}
 
 {% block title %}Pizza Mama | Validation commande{% endblock %}
 
 {% block content %}
 <div class="checkout-layout">
-    <section class="surface-card order-card float-enter">
+    <section class="surface-card order-card checkout-card-pro float-enter">
         <div class="section-head mb-3">
             <div>
                 <span class="section-kicker">Finalisation</span>
@@ -14,89 +14,140 @@
             <a href="{% url 'menu' %}" class="back-link">Retour menu</a>
         </div>
 
-        <p class="tiny-meta mb-3">Toutes les commandes sont confirmees immediatement. Le paiement reste ensuite en attente de validation par l'equipe.</p>
+        <p class="tiny-meta mb-4">Reference creee apres validation.</p>
 
         <form method="post" action="">
             {% csrf_token %}
             {{ form.non_field_errors }}
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <label for="{{ form.nom.id_for_label }}" class="form-label">{{ form.nom.label }}</label>
-                    {{ form.nom }}
-                    {{ form.nom.errors }}
+
+            <div class="form-section-card mb-3">
+                <div class="section-head mb-3">
+                    <div>
+                        <span class="section-kicker">Coordonnees</span>
+                        <h2 class="font-head title-md mt-2 mb-0">Vos coordonnees</h2>
+                    </div>
                 </div>
-                <div class="col-12 col-md-6">
-                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
-                    {{ form.email }}
-                    {{ form.email.errors }}
-                </div>
-                <div class="col-12 col-md-6">
-                    <label for="{{ form.telephone.id_for_label }}" class="form-label">{{ form.telephone.label }}</label>
-                    {{ form.telephone }}
-                    {{ form.telephone.errors }}
-                </div>
-                <div class="col-12 col-md-6">
-                    <label for="{{ form.payment_method.id_for_label }}" class="form-label">{{ form.payment_method.label }}</label>
-                    {{ form.payment_method }}
-                    {{ form.payment_method.errors }}
-                </div>
-                <div class="col-12">
-                    <label for="{{ form.adresse.id_for_label }}" class="form-label">{{ form.adresse.label }}</label>
-                    {{ form.adresse }}
-                    {{ form.adresse.errors }}
-                </div>
-                <div class="col-12">
-                    <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
-                    {{ form.notes }}
-                    {{ form.notes.errors }}
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.nom.id_for_label }}" class="form-label">{{ form.nom.label }}</label>
+                        {{ form.nom }}
+                        {{ form.nom.errors }}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="{{ form.telephone.id_for_label }}" class="form-label">{{ form.telephone.label }}</label>
+                        {{ form.telephone }}
+                        {{ form.telephone.errors }}
+                    </div>
                 </div>
             </div>
 
-            <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+            <div class="form-section-card mb-3">
+                <div class="section-head mb-3">
+                    <div>
+                        <span class="section-kicker">Livraison</span>
+                        <h2 class="font-head title-md mt-2 mb-0">Adresse</h2>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="{{ form.adresse.id_for_label }}" class="form-label">{{ form.adresse.label }}</label>
+                        {{ form.adresse }}
+                        {{ form.adresse.errors }}
+                    </div>
+                    <div class="col-12">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {{ form.notes.errors }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section-card mb-4">
+                <div class="section-head mb-3">
+                    <div>
+                        <span class="section-kicker">Paiement</span>
+                        <h2 class="font-head title-md mt-2 mb-0">Mode de paiement</h2>
+                    </div>
+                </div>
+                <div class="payment-option-grid">
+                    {% for option in payment_method_options %}
+                        <label class="payment-option-card">
+                            <input
+                                class="payment-choice-input"
+                                type="radio"
+                                name="{{ form.payment_method.html_name }}"
+                                value="{{ option.value }}"
+                                id="{{ option.id }}"
+                                {% if option.checked %}checked{% endif %}
+                            >
+                            <span class="payment-option-body">
+                                <span class="payment-option-kicker">{{ option.eyebrow }}</span>
+                                <strong>{{ option.label }}</strong>
+                                <span class="payment-option-copy">{{ option.description }}</span>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {{ form.payment_method.errors }}
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2">
                 <button type="submit" class="btn btn-brand flex-fill">Confirmer la commande</button>
                 <a href="{% url 'menu' %}" class="btn btn-outline-brand flex-fill">Continuer mes achats</a>
             </div>
         </form>
     </section>
 
-    <aside class="surface-card cart-panel float-enter float-delay-1">
-        <div class="section-head mb-3">
-            <div>
-                <span class="section-kicker">Recapitulatif</span>
-                <h2 class="font-head title-md mt-2">Votre panier</h2>
+    <aside class="checkout-aside-stack">
+        <section class="surface-card cart-panel float-enter float-delay-1">
+            <div class="section-head mb-3">
+                <div>
+                    <span class="section-kicker">Recapitulatif</span>
+                    <h2 class="font-head title-md mt-2">Votre panier</h2>
+                </div>
+                <span class="tag-pill">{{ total|ariary }}</span>
             </div>
-            <span class="tag-pill">{{ total|ariary }}</span>
-        </div>
 
-        <ul class="list-group cart-list mb-3">
-            {% for item in panier_lignes %}
-                <li class="list-group-item d-flex justify-content-between gap-2">
-                    <div>
-                        <strong>{{ item.nom }}</strong><br>
-                        <small class="text-muted-soft">Quantite: {{ item.quantite }}</small>
-                    </div>
-                    <strong>{{ item.line_total|ariary }}</strong>
-                </li>
-            {% endfor %}
-        </ul>
+            <div class="cart-summary-banner mb-3">
+                <strong>{{ panier_count }} article{{ panier_count|pluralize }}</strong>
+                <span>{{ total|ariary }}</span>
+            </div>
 
-        <div class="surface-card-soft p-3 mb-3">
-            <p class="d-flex justify-content-between mb-2">
-                <span>Sous-total</span>
-                <strong>{{ total|ariary }}</strong>
-            </p>
-            <p class="d-flex justify-content-between mb-0 tiny-meta">
-                <span>Suivi</span>
-                <span>Reference unique apres validation</span>
-            </p>
-        </div>
+            <ul class="list-group cart-list cart-list-pro mb-3">
+                {% for item in panier_lignes %}
+                    <li class="list-group-item d-flex justify-content-between gap-2">
+                        <div>
+                            <strong>{{ item.nom }}</strong><br>
+                            <small class="text-muted-soft">Quantite: {{ item.quantite }}</small>
+                        </div>
+                        <strong>{{ item.line_total|ariary }}</strong>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="cart-checkout-card">
+                <div class="summary-line">
+                    <span>Sous-total</span>
+                    <strong>{{ total|ariary }}</strong>
+                </div>
+                <div class="summary-line summary-line-muted">
+                    <span>Suivi</span>
+                    <strong>Reference apres validation</strong>
+                </div>
+            </div>
+        </section>
 
         {% if not request.user.is_authenticated %}
-            <div class="surface-card-soft p-3">
+            <section class="surface-card-soft p-3 float-enter float-delay-3">
                 <h3 class="font-head title-md mb-2">Creer un compte</h3>
-                <p class="mb-3 text-muted-soft">Un compte vous permet de retrouver automatiquement vos commandes futures.</p>
+                <p class="mb-3 text-muted-soft">Retrouvez plus vite vos prochaines commandes.</p>
                 <a href="{% url 'inscription' %}" class="btn btn-outline-brand w-100">Creer un compte</a>
-            </div>
+            </section>
         {% endif %}
     </aside>
 </div>
